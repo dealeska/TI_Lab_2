@@ -1,28 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TI_Lab_2
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Key key = new Key();
-            key.CreateKeys();
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			Key key = new Key();
+			key.CreateKeys();
 
-            RSA cipher = new RSA();
-            long[] kek = cipher.Encrypt("AAAAA POMOGITE SPASITE KAKOI SE BRED!!!", key.publicKey, key.module);
+			long[] data;
+			string plainText;
 
-            for (int i = 0; i < kek.Length; i++)
-                Console.Write(kek[i].ToString());
-            Console.WriteLine("\n");
-            
-            Console.WriteLine(cipher.Decrypt(kek, key.privateKey, key.module));
-            Console.ReadLine();
-            
-        }
-    }
+			plainText = "ALESYA";
+			data = FromString(plainText);
+
+			RSA.Encrypt(ref data, key.PublicKey, key.Module);
+			string encryptedText = ToString(data);
+			RSA.Encrypt(ref data, key.PrivateKey, key.Module);
+			string decryptedText = FromArray(data);
+
+			Console.WriteLine("Plain text:     " + plainText);
+			Console.WriteLine("Encrypted text: " + encryptedText);
+			Console.WriteLine("Decrypted text: " + decryptedText);
+
+			Console.ReadLine();
+		}
+
+		public static long[] FromString(string text)
+		{
+			long[] array = new long[text.Length];
+
+			for (int i = 0; i < text.Length; i++)
+			{
+				array[i] = text[i];
+			}
+
+			return array;
+		}
+
+		public static string FromArray(long[] data)
+		{
+			StringBuilder builder = new StringBuilder(data.Length);
+
+			for (int i = 0; i < data.Length; i++)
+			{
+				builder.Append((char)data[i]);
+			}
+
+			return builder.ToString();
+		}
+
+		public static string ToString(long[] data)
+		{
+			StringBuilder builder = new StringBuilder(data.Length);
+
+			for (int i = 0; i < data.Length; i++)
+			{
+				builder.Append(data[i] + " ");
+			}
+
+			return builder.ToString();
+		}
+	}
 }

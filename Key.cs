@@ -1,120 +1,115 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace TI_Lab_2
 {
-    class Key
-    {
-        private long[] numbers = { 317, 257, 65537 };
-        public long privateKey { get; private set; }
-        public long publicKey { get; private set; }
-        private long p, q, e, eilerFunc, privateExp;
-        public long module { get; private set; }
+	class Key
+	{
+		private readonly Random random = new Random();
+		private readonly long[] numbers = { 317, 257, 65537 };
 
-        private long FindSimpleNumber()
-        {
-            bool isSimple = false;
-            Random random = new Random();
-            long simpleNum = 0;
+		public long Module { get; private set; }
+		public long PrivateKey { get; private set; }
+		public long PublicKey { get; private set; }
 
-            while (!isSimple)
-            {
-                simpleNum = random.Next(10000, 20000);
-                isSimple = true;
-                for (long i = 2; i < Math.Sqrt(simpleNum) + 1; i++)
-                {
-                    if (simpleNum % i == 0)
-                    {
-                        isSimple = false;
-                        break;
-                    }
-                }
-            }
-            return simpleNum;
-        }
+		private long FindSimpleNumber()
+		{
+			bool isSimple = false;
+			long simpleNum = 0;
 
-        private long FindOpenExp(int eilerNum)
-        {
-            Random rand = new Random();
-            long openExp = 0;
+			while (!isSimple)
+			{
+				simpleNum = random.Next(10000, 20000);
+				isSimple = true;
+				for (long i = 2; i < Math.Sqrt(simpleNum) + 1; i++)
+				{
+					if (simpleNum % i == 0)
+					{
+						isSimple = false;
+						break;
+					}
+				}
+			}
 
-            openExp = rand.Next(0, numbers.Length);
-            
-            return numbers[openExp];
-        }
+			return simpleNum;
+		}
 
-        private void EuclidEx(long a, long b, out long x, out long d)
-        {
-            long q, r, x1, x2;
+		private long FindOpenExp(int eilerNum)
+		{
+			Random rand = new Random();
+			long openExp;
 
-            x1 = 0; x2 = 1;           
+			openExp = rand.Next(0, numbers.Length);
 
-            while (b > 0)
-            {
-                q = a / b;
-                r = a - q * b;
-                x = x2 - q * x1;
-                a = b; b = r;
-                x2 = x1; x1 = x;
-            }
+			return numbers[openExp];
+		}
 
-            d = a;
-            x = x2;            
-        }
+		private void EuclidEx(long a, long b, out long x, out long d)
+		{
+			long q, r, x1, x2, y1, y2, y;
 
-        private long FindPrivateExp(long a, long n)
-        {
-            long x, d;
-            EuclidEx(a, n, out x, out d);
+			x1 = 0; x2 = 1;
+			y1 = 1; y2 = 0;
 
-            if (d == 1)
-                return x;
+			while (b > 0)
+			{
+				q = a / b;
+				r = a - q * b;
+				x = x2 - q * x1;
+				y = y2 - q * y1;
+				a = b; b = r;
+				x2 = x1; x1 = x;
+				y2 = y1; y1 = y;
+			}
 
-            return 0;
-        }
+			d = a;
+			x = x2;
+		}
+
+		private long Reverse(long a, long n)
+		{
+			long y;
+			EuclidEx(a, n, out long x, out long d);
+
+			if (d == 1)
+			{
+				return x;
+			}
+
+			return 0;
+		}
 
 
-        public void CreateKeys()
-        {
-            bool isSimple = false;
-            Random random = new Random();           
+		public void CreateKeys()
+		{
+			long p, q, eulerFunc;
 
-            while (!isSimple)
-            {
-                p = random.Next(10000, 20000);
-                isSimple = true;
-                for (long i = 2; i < Math.Sqrt(p) + 1; i++)
-                {
-                    if (p % i == 0)
-                    {
-                        isSimple = false;
-                        break;
-                    }
-                }
-            }
+			p = FindSimpleNumber();
+			q = FindSimpleNumber();
 
-            q = FindSimpleNumber();
+			if (p == q)
+			{
+				CreateKeys();
 
-            module = p * q;
+				return;
+			}
 
-            eilerFunc = (p - 1) * (q - 1);
+			Module = p * q;
 
-            e = FindOpenExp((int)eilerFunc);
-            publicKey = e;
+			eulerFunc = (p - 1) * (q - 1);
 
-            privateExp = FindPrivateExp(e, eilerFunc);
+			PublicKey = FindOpenExp((int)eulerFunc);
 
-            if (privateExp < 0)
-                privateExp = privateExp + eilerFunc;
-            if (privateExp == 0)
-                CreateKeys();
+			PrivateKey = Reverse(PublicKey, eulerFunc);
 
-            privateKey = privateExp;
-        }
+			if (PrivateKey < 0)
+			{
+				PrivateKey += eulerFunc;
+			}
+			if (PrivateKey == 0)
+			{
+				CreateKeys();
+			}
+		}
 
-    }
+	}
 }
